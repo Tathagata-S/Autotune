@@ -10,3 +10,18 @@ You can install the development version from GitHub:
 install.packages("devtools")
 
 devtools::install_github("Tathagata-S/Autotune")
+```
+👉 **Usage**:
+```md
+## Usage
+
+Here’s a quick example:
+
+```r
+library(Autotune)
+
+# Run the automated parameter tuning
+results <- autotune(data = my_data, ...)
+head(results)
+
+
