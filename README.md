@@ -14,8 +14,6 @@ devtools::install_github("Tathagata-S/Autotune")
 
 👉 **Usage**:
 ```md
-## Usage
-
 Here’s a quick example:
 ```
 
