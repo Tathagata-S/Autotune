@@ -47,7 +47,7 @@ cat("The Predictors which are actually significant:", which(b != 0), "\n")
 cat("Top 10 predictors X_i's in the ranking of X_i's given by autotune:", (ans$sorted_predictors[1:10] + 1))
 cat("No of significant predictors in each CD iteration when sigma_hat is allowed to vary:", ans$count_sig_beta)
 cat("Sigma estimates in each CD iteration:", ans$sigma2_seq)
-cat("Empirical noise variance:", noise.sd^2)
+cat("Empirical noise variance:", var(err))
 which(ans$beta != 0)
 which(b != 0)
 
