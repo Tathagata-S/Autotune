@@ -196,8 +196,8 @@ List autotune_lasso_active(NumericMatrix x,
       if((sum(x(_, idx) * r) - beta[idx])/n >= lambda_effective) {
         active_set.push_back(idx);
       } else {
-        r += x(_, j) * beta[j];
-        beta[j] = 0;
+        r += x(_, idx) * beta[idx];
+        beta[idx] = 0;
       }
     }
     
