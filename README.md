@@ -27,7 +27,6 @@ set.seed(10)
 n <- 80
 p <- 500
 s <- 5
-type <- 1
 snr <- 3
 betatrue <- c(rep(1,s), rep(0, p - s))
 x <- scale(matrix(rnorm(n * p), ncol = p))
