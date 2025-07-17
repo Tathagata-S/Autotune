@@ -49,5 +49,6 @@ cat("Sigma estimates in each CD iteration:", ans$sigma2_seq)
 cat("Empirical noise variance:", var(err))
 which(ans$beta != 0)
 which(b != 0)
-
+ans$beta[b != 0]
+ans$beta[b == 0]
 ```
