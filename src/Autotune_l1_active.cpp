@@ -132,7 +132,6 @@ List autotune_lasso_active(NumericMatrix x,
     vec_sig_beta_count[iteration - 1] = iter;
     sigma2_seq[iteration - 1] = sigma2est;
     
-    // Calculate error for stopping criteria
     mean_abs_old_beta = mean(abs(old_beta));
     mean_abs_diff = mean(abs(old_beta - beta));
     error = mean_abs_diff / std::max(mean_abs_old_beta, 1e-8);
@@ -194,8 +193,8 @@ List autotune_lasso_active(NumericMatrix x,
     
     for (int j = active_set.size(); j < p; j++) {
       idx = active_indices[j];
-      if(sum(x(_, j) * r) > lambda_effective) {
-        active_set.push_back(j);
+      if((sum(x(_, idx) * r) - beta[idx])/n >= lambda_effective) {
+        active_set.push_back(idx);
       } else {
         r += x(_, j) * beta[j];
         beta[j] = 0;
