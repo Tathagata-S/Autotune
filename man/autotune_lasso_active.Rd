@@ -79,9 +79,13 @@ variance estimate \eqn{\hat{\sigma}^2} has converged.}
 their contribution to predicting the response values.}
 \item{support_set}{Final set of predictors included in the support set
 by autotune lasso.}
+\item{active_set}{Predictors which pass the screening test after \eqn{\sigma} 
+has converged, i.e., whose absolute correlation with \eqn{y} is not less than 
+the final threshold value \eqn{\lambda =
+\lambda_0\hat{\sigma}^2} or \code{lambda_for_soft_thres}.}
 \item{no_of_iter}{Number of iterations of coordinate descent performed
-before noise variance estimate \hat{\sigma}^2 converged.}
-\item{no_of_beta_iter}{After noise variance estimate \hat{\sigma}^2 has
+before noise variance estimate \eqn{\hat{\sigma}^2} converged.}
+\item{no_of_beta_iter}{After noise variance estimate \eqn{\hat{\sigma}^2} has
 converged, it is the number of iterations of coordinate descent required
 for coefficients \eqn{\hat\beta} to converge.}
 \item{count_sig_beta}{(\code{no_of_iter})-length vector containing the
