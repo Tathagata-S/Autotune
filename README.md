@@ -2,7 +2,7 @@
 Repository for R package of Autotune LASSO
 
 ## Installation
-
+Ensure that you have the Rcpp package installed with version >=1.0.13
 You can install the development version from GitHub:
 
 ```r
