@@ -19,7 +19,7 @@ autotune_lasso_l2(
 )
 }
 \arguments{
-\item{x}{Matrix of predictors, with one column for each predictor.
+\item{x}{Matrix of (standardized) predictors, with one column for each predictor.
 Dimension will be \code{nobs} \eqn{\times} \code{nvars}; so each row is a new observation.}
 
 \item{y}{Vector of responses.}
@@ -79,8 +79,8 @@ their contribution to predicting the response values.}
 \item{support_set}{Final set of predictors included in the support set
 by autotune lasso.}
 \item{no_of_iter}{Number of iterations of coordinate descent performed
-before noise variance estimate \hat{\sigma}^2 converged.}
-\item{no_of_beta_iter}{After noise variance estimate \hat{\sigma}^2 has
+before noise variance estimate \eqn{\hat{\sigma}^2} converged.}
+\item{no_of_beta_iter}{After noise variance estimate \eqn{\hat{\sigma}^2} has
 converged, it is the number of iterations of coordinate descent required
 for coefficients \eqn{\hat\beta} to converge.}
 \item{count_sig_beta}{(\code{no_of_iter})-length vector containing the
