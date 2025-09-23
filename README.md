@@ -21,7 +21,7 @@ Here’s a quick example:
 library(Autotune)
 ?autotune_lasso
 
-set.seed(10)
+set.seed(1234)
 n <- 80
 p <- 500
 s <- 5
