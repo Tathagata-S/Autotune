@@ -1,0 +1,56 @@
+#' Autotune: Lasso with data-driven tuning for linear models
+#'
+#' This package fits lasso path for high-dimensional regression using
+#' coordinate descent while automatically tuning it's regularization parameter.
+#' Autotune Lasso is 10-50 times than the standard glmnet implementation of lasso,
+#' and over 100 times faster than scaled lasso. Additionally, it gives reliable 
+#' noise level estimate for the regression problem. 
+#'
+#' \tabular{ll}{ Package: \tab Autotune\cr Type: \tab Package\cr Version: \tab
+#' 1.0\cr Date: \tab 2025-09-18\cr }
+#' Very simple to use. Accepts \code{x,y} data for linear regression model,
+#' and produces the regularization path which automatically estimates an
+#' optimal tuning parameter \code{lambda}.\cr
+#' @section Functions: Only 1 function, more autotune algorithms for VAR, random forests,
+#' coming soon!
+#'   \itemize{
+#'     \item \code{\link{autotune_lasso}}
+#'   }
+#' 
+#' @author Tathagata Sadhukhan Ines Wilms Stephan Smeekes
+#' and Sumanta Basu\cr Maintainer: Tathagata Sadhukhan(ts767@@cornell.edu)
+#' @docType package
+#' @name Autotune-package
+#' @keywords lasso data-driven-tuning package fast accurate 
+#' 
+#' @examples
+#' 
+#' set.seed(10)
+#' n <- 80
+#' p <- 500
+#' s <- 5
+#' type <- 1
+#' snr <- 3
+#' betatrue <- c(rep(1,s), rep(0, p - s))
+#' x <- scale(matrix(rnorm(n * p), ncol = p))
+#' error.sd <- sqrt((betatrue %*% betatrue)/snr)
+#' err <- rnorm(n, sd = error.sd)
+#' y <- x %*% betatrue + err
+#' y <- y - mean(y)
+#' ans <- autotune_lasso(x, y, verbose = TRUE)
+#' b <- betatrue
+#' # The Predictors which are actually significant:
+#' which(b != 0)
+#' # The Predictors which had nonzero estmated coefficients:
+#' which(ans$beta != 0)
+#' # Top 10 predictors X_i's in the ranking of X_i's given by autotune:
+#' ans$sorted_predictors[1:10] + 1
+#' # No of significant predictors in each CD iteration when sigma_hat is allowed to vary:
+#' ans$count_sig_beta
+#' # Sigma estimates in each CD iteration:
+#' ans$sigma2_seq
+#' # Empirical noise variance:
+#' var(err)
+#' 
+#' 
+"_PACKAGE"
