@@ -20,8 +20,6 @@ Here’s a quick example:
 ```r
 library(Autotune)
 ?autotune_lasso
-?autotune_lasso_active
-?autotune_lasso_l2
 
 set.seed(10)
 n <- 80
@@ -29,7 +27,7 @@ p <- 500
 s <- 5
 snr <- 3
 betatrue <- c(rep(1,s), rep(0, p - s))
-x <- scale(matrix(rnorm(n * p), ncol = p))
+x <- matrix(rnorm(n * p), ncol = p)
 error.sd <- sqrt((betatrue %*% betatrue)/snr)
 
 err <- rnorm(n, sd = error.sd)
@@ -38,17 +36,18 @@ y <- y - mean(y)
 
 #Try out different functions of the package in different setups
 ans <- autotune_lasso(x, y, verbose = T)
-# ans <- autotune_lasso_active(x, y, verbose = T)
-# ans <- autotune_lasso_l2(x, y, verbose = T)
 
 b <- betatrue
-cat("The Predictors which are actually significant:", which(b != 0), "\n")
-cat("Top 10 predictors X_i's in the ranking of X_i's given by autotune:", (ans$sorted_predictors[1:10] + 1))
-cat("No of significant predictors in each CD iteration when sigma_hat is allowed to vary:", ans$count_sig_beta)
-cat("Sigma estimates in each CD iteration:", ans$sigma2_seq)
-cat("Empirical noise variance:", var(err))
-which(ans$beta != 0)
+# The Predictors which are actually significant:
 which(b != 0)
-ans$beta[b != 0]
-ans$beta[b == 0]
+# The Predictors which had nonzero estmated coefficients:
+which(ans$beta != 0)
+# Top 10 predictors X_i's in the ranking of X_i's given by autotune:
+ans$sorted_predictors[1:10] + 1
+# No of significant predictors in each CD iteration when sigma_hat is allowed to vary:
+ans$count_sig_beta
+# Sigma estimates in each CD iteration:
+ans$sigma2_seq
+# Empirical noise variance:
+var(err)
 ```
