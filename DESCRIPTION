@@ -1,7 +1,7 @@
 Package: Autotune
 Type: Package
 Title: What the Package Does (Title Case)
-Version: 1.0.0
+Version: 0.1.0
 Author: Tathagata Sadhukhan
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: This package fits lasso path for high-dimensional regression using coordinate descent while automatically tuning it's regularization parameter.Autotune Lasso is 10-50 times than the standard glmnet implementation of lasso, and over 100 times faster than scaled lasso. Additionally, it gives reliable noise level estimate for the regression problem.
