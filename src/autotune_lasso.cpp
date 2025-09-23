@@ -34,7 +34,7 @@ List autotune_lasso(SEXP xin,
   } else {
     stop("X must have more than 1 variables");
   }
-  if (any(is_na(y)) | any(is_na(x))) {
+  if (Rcpp::as<bool>(any(is_na(y))) || Rcpp::as<bool>(any(is_na(x)))) {
     stop("x or y contains NA values.");
   }
   
