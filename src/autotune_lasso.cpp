@@ -338,6 +338,10 @@ List autotune_lasso(SEXP xin,
     }
   }
   
+  if(standardize_response) {
+    y = y + rep(y_mean, y.size());
+  }
+  
   if (verbose) {
     Rcout << "\nNo of iterations: " << iteration << "\nNo of Beta iterations: " << beta_iteration - 1
           << "\nNo of significant predictors: " << vec_sig_beta_count[iteration - 1] << std::endl;

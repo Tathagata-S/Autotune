@@ -34,7 +34,6 @@ err <- rnorm(n, sd = error.sd)
 y <- x %*% betatrue + err
 y <- y - mean(y)
 
-#Try out different functions of the package in different setups
 ans <- autotune_lasso(x, y, verbose = T)
 
 b <- betatrue
