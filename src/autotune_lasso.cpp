@@ -332,6 +332,10 @@ List autotune_lasso(SEXP xin,
         }
       }
     }
+    beta = beta_mat(iteration, _);
+    for(int j = 0; j < p; j++) {
+      x(_, j) = x(_, j) * predsds[j] + predmeans[j];
+    }
   }
   
   if (verbose) {

@@ -1,5 +1,5 @@
 #' Autotune LASSO: Fitting a linear model with fast and automatic lasso regularization
-#' @name Autotune_Lasso
+#' @name autotune_Lasso
 #' @param xin Matrix of predictors, with one column for each predictor.
 #' Dimension will be \code{nobs} \eqn{\times} \code{nvars}; so each row is a new observation
 #' and \code{nvars} >1.
