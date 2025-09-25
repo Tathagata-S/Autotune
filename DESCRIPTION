@@ -1,11 +1,11 @@
 Package: Autotune
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Faster and more efficient Lasso (than glmnet and scalreg) with data-driven tuning.
 Version: 0.1.0
-Author: Tathagata Sadhukhan
-Maintainer: The package maintainer <yourself@somewhere.net>
+Author: Tathagata Sadhukhan, Ines Wilms, Stephan Smeekes, Sumanta Basu
+Maintainer: Tathagata Sadhukhan <ts767@cornell.edu>
 Description: This package fits lasso path for high-dimensional regression using coordinate descent while automatically tuning it's regularization parameter.Autotune Lasso is 10-50 times than the standard glmnet implementation of lasso, and over 100 times faster than scaled lasso. Additionally, it gives reliable noise level estimate for the regression problem.
-License: TBD
+License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 Imports: Rcpp (>= 1.0.13)

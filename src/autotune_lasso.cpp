@@ -59,8 +59,8 @@ List autotune_lasso(SEXP xin,
       if(sd_j > 0.0) {
         x(_,j) = (x(_,j) - mu_j) / sd_j;
       } else {
-        NumericVector col = x(_, j);
-        std::fill(col.begin(), col.end(), 0.0); 
+        NumericVector zeroVector(n, 0.0);
+        x(_, j) = zeroVector;
       }
     }
   }
