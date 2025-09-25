@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // autotune_lasso
-List autotune_lasso(SEXP xin, SEXP yin, float alpha, Nullable<double> lambda0, double tolerance, double beta_tolerance, short int iter_max, short int beta_iter_max, bool standardize, bool standardize_response, bool intercept, bool active, bool verbose, bool l2_partial_residuals);
-RcppExport SEXP _Autotune_autotune_lasso(SEXP xinSEXP, SEXP yinSEXP, SEXP alphaSEXP, SEXP lambda0SEXP, SEXP toleranceSEXP, SEXP beta_toleranceSEXP, SEXP iter_maxSEXP, SEXP beta_iter_maxSEXP, SEXP standardizeSEXP, SEXP standardize_responseSEXP, SEXP interceptSEXP, SEXP activeSEXP, SEXP verboseSEXP, SEXP l2_partial_residualsSEXP) {
+List autotune_lasso(SEXP xin, SEXP yin, float alpha, Nullable<double> lambda0, double tolerance, double beta_tolerance, short int iter_max, short int beta_iter_max, bool standardize, bool standardize_response, bool intercept, bool active, bool trace_it, bool l2_partial_residuals);
+RcppExport SEXP _Autotune_autotune_lasso(SEXP xinSEXP, SEXP yinSEXP, SEXP alphaSEXP, SEXP lambda0SEXP, SEXP toleranceSEXP, SEXP beta_toleranceSEXP, SEXP iter_maxSEXP, SEXP beta_iter_maxSEXP, SEXP standardizeSEXP, SEXP standardize_responseSEXP, SEXP interceptSEXP, SEXP activeSEXP, SEXP trace_itSEXP, SEXP l2_partial_residualsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -28,9 +28,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type standardize_response(standardize_responseSEXP);
     Rcpp::traits::input_parameter< bool >::type intercept(interceptSEXP);
     Rcpp::traits::input_parameter< bool >::type active(activeSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< bool >::type trace_it(trace_itSEXP);
     Rcpp::traits::input_parameter< bool >::type l2_partial_residuals(l2_partial_residualsSEXP);
-    rcpp_result_gen = Rcpp::wrap(autotune_lasso(xin, yin, alpha, lambda0, tolerance, beta_tolerance, iter_max, beta_iter_max, standardize, standardize_response, intercept, active, verbose, l2_partial_residuals));
+    rcpp_result_gen = Rcpp::wrap(autotune_lasso(xin, yin, alpha, lambda0, tolerance, beta_tolerance, iter_max, beta_iter_max, standardize, standardize_response, intercept, active, trace_it, l2_partial_residuals));
     return rcpp_result_gen;
 END_RCPP
 }
