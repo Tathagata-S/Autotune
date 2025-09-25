@@ -116,7 +116,7 @@ List autotune_lasso(SEXP xin,
     
     for (int j = 0; j < p; j++) {
       idx = active_indices[j];
-      beta_temp = (sum(x(_, idx) * r) / n) + (beta[idx]* (n-1) / n);
+      beta_temp = (sum(x(_, idx) * r) / n) + beta[idx];
       
       if (std::abs(beta_temp) > lambda_effective) {
         beta[idx] = beta_temp - (beta_temp > 0 ? 1 : -1) * lambda_effective;
@@ -169,6 +169,7 @@ List autotune_lasso(SEXP xin,
           u(_, k) = u(_, k) - proj_coeffs[k1] * u(_, k1);
         }
       }
+      
       uk = u(_, k);
       NumericVector yhat = uk * (sum(uk * ytemp)) / (sum(uk * uk));
       double rss = sum(pow(ytemp - yhat, 2));
@@ -240,8 +241,9 @@ List autotune_lasso(SEXP xin,
   
   if(active) {
     while( beta_iteration < 2 ) {
+      
       for(int& idx : active_set) {
-        beta_temp = (sum(x(_, idx) * r) / n) + (beta[idx] * (n-1) / n);
+        beta_temp = (sum(x(_, idx) * r) / n) + beta[idx];
         
         if (std::abs(beta_temp) > lambda_effective) {
           beta[idx] = beta_temp - (beta_temp > 0 ? 1 : -1) * lambda_effective;
@@ -252,7 +254,6 @@ List autotune_lasso(SEXP xin,
         NumericVector change_in_xbeta = x(_, idx) * (beta[idx] - old_beta[idx]);
         r = r - change_in_xbeta;
       }
-      
       
       for (int j = active_set.size(); j < p; j++) {
         idx = active_indices[j];
@@ -273,7 +274,7 @@ List autotune_lasso(SEXP xin,
       NumericVector old_beta = clone(beta);
       
       for(int& idx : active_set){
-        beta_temp = (sum(x(_, idx) * r) / n) + (beta[idx] * (n-1) / n);
+        beta_temp = (sum(x(_, idx) * r) / n) + beta[idx];
         
         if (std::abs(beta_temp) > lambda_effective) {
           beta[idx] = beta_temp - (beta_temp > 0 ? 1 : -1) * lambda_effective;
@@ -292,12 +293,13 @@ List autotune_lasso(SEXP xin,
       beta_iteration++;
     }
   } else {
+    
     while(error > beta_tolerance && beta_iteration <= beta_iter_max) {
       NumericVector old_beta = clone(beta);
       
       for (int j = 0; j < p; j++) {
         idx = active_indices[j];
-        beta_temp = (sum(x(_, idx) * r) / n) + (beta[idx] * (n-1) / n);
+        beta_temp = (sum(x(_, idx) * r) / n) + beta[idx];
         
         if (std::abs(beta_temp) > lambda_effective) {
           beta[idx] = beta_temp - (beta_temp > 0 ? 1 : -1) * lambda_effective;
