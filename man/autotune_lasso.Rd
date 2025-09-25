@@ -95,7 +95,7 @@ p <- 400
 s <- 5
 snr <- 4
 betatrue <- c(rep(1,s), rep(0, p - s))
-x <- scale(matrix(rnorm(n * p), ncol = p))
+x <- matrix(rnorm(n * p), ncol = p)
 error.sd <- sqrt((betatrue \%*\% betatrue)/snr)
 err <- rnorm(n, sd = error.sd)
 y <- x \%*\% betatrue + err
