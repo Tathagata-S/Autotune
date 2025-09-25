@@ -21,11 +21,11 @@ Here’s a quick example:
 library(Autotune)
 ?autotune_lasso
 
-set.seed(1234)
+set.seed(10)
 n <- 80
-p <- 500
+p <- 400
 s <- 5
-snr <- 3
+snr <- 4
 betatrue <- c(rep(1,s), rep(0, p - s))
 x <- matrix(rnorm(n * p), ncol = p)
 error.sd <- sqrt((betatrue %*% betatrue)/snr)
@@ -34,15 +34,15 @@ err <- rnorm(n, sd = error.sd)
 y <- x %*% betatrue + err
 y <- y - mean(y)
 
-ans <- autotune_lasso(x, y, verbose = T)
+ans <- autotune_lasso(x, y, trace_it = T)
 
 b <- betatrue
 # The Predictors which are actually significant:
 which(b != 0)
-# The Predictors which had nonzero estmated coefficients:
+# The Predictors which had nonzero estimated coefficients:
 which(ans$beta != 0)
 # Top 10 predictors X_i's in the ranking of X_i's given by autotune:
-ans$sorted_predictors[1:10] + 1
+ans$sorted_predictors[1:10]
 # No of significant predictors in each CD iteration when sigma_hat is allowed to vary:
 ans$count_sig_beta
 # Sigma estimates in each CD iteration:
