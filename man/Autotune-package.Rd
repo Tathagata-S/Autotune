@@ -8,7 +8,7 @@
 \description{
 This package fits lasso path for high-dimensional regression using
 coordinate descent while automatically tuning it's regularization parameter.
-Autotune Lasso is 10-50 times than the standard glmnet implementation of lasso,
+Autotune Lasso is 15-125 times faster than the standard glmnet implementation of lasso,
 and over 100 times faster than scaled lasso. Additionally, it gives reliable 
 noise level estimate for the regression problem.
 }

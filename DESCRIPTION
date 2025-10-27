@@ -11,3 +11,7 @@ LazyData: true
 Imports: Rcpp (>= 1.0.13)
 LinkingTo: Rcpp
 RoxygenNote: 7.3.2
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

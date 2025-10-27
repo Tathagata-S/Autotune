@@ -1,0 +1,159 @@
+---
+title: "Autotune Lasso"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Autotune Lasso}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The R package `Autotune` implements the Lasso with data-driven tuning for linear models.
+
+## Installation and Loading
+### Installation
+The development version of the `Autotune` package can be installed from GitHub using
+```{r install-github, eval = FALSE}
+# install.packages("devtools")
+# Ensure that you have the Rcpp package installed with version >=1.0.13
+devtools::install_github("Tathagata-S/Autotune")
+```
+When installing from GitHub, in order to build the package from source, you need to have the appropriate R development tools installed ([Rtools](https://cran.r-project.org/bin/windows/Rtools/) on Windows, or [these tools](https://mac.r-project.org/tools/) on Mac).
+
+
+### Load Package
+After installation, the package can be loaded in the standard way:
+```{r setup}
+library(Autotune)
+```
+
+## High Dimensional Regression
+`Autotune` performs lasso via the `autotune_lasso()` function. 
+
+We illustrate autotune lasso on simulated data using a linear model with $s=5$, $n=80$, $p=750$, as per the specifications used in Sadhukhan et. al. (2025) 
+
+```{r}
+set.seed(10)
+n = 80
+p = 150
+s = 5
+beta = c(rep(1, s), rep(0, p - s))
+x = matrix(rnorm(n * p), ncol = p)
+y = x %*% beta + rnorm(n, sd = 1)
+```
+
+Given data (x, y), run the autotune lasso as follows with default $\alpha = 0.01$.
+
+```{r}
+ptm <- proc.time()
+fit.autotune <- autotune_lasso(x, y, alpha = 0.01)
+proc.time() - ptm
+```
+
+The regression coefficients $\beta$s, intercept, final lambda and the sequence of estimated sigmas can be extracted from the fitted autotune lasso object as follows
+```{r}
+b.autotune <- fit.autotune$beta
+intercept.autotune <- fit.autotune$a0
+lambda.autotune <- fit.autotune$lambda
+sigma.seq.autotune <- fit.autotune$sigma2_seq
+sigma.estimate.autotune <- rev(fit.autotune$sigma2_seq)[1]
+```
+
+
+### Comparison with Lasso tuned via Cross Validation
+
+We contrast our solution with Cross-Validation-tuned Lasso using `cv.glmnet()` in the `glmnet` package.
+
+```{r}
+library(glmnet)
+
+ptm2 <- proc.time()
+fit.glmnet <- cv.glmnet(x, y)
+proc.time()-ptm2
+```
+So, Autotune Lasso shows faster runtimes as compared to CV Lasso.
+
+
+Now, we will visualize the quality of lambdas selected by autotune and CV with respect to the 10-fold CV MSE and true Relative MSE.
+```{r}
+plot(fit.glmnet)
+# plotting log of lambdas selected by CV
+abline(v = log(c(fit.glmnet$lambda.min, fit.glmnet$lambda.1se)), lty = "dashed",col = c(rgb(0,1,0), rgb(0,0.75,0)), lwd = 3)
+# plotting log of lambda selected by autotune
+abline(v = log(lambda.autotune), col = "blue", lty = "dashed", lwd = 3)
+legend("topleft", inset = 0.05,                  
+  legend = c("Autotune LASSO",
+             "CV_LASSO(min)",
+             "CV_LASSO(1se)"),
+  col = c("blue", rgb(0,1,0), rgb(0,0.75,0)),
+  lty = "dashed", lwd = 2, cex = 1.5)
+```
+
+```{r}
+mse_glmnet <- apply(fit.glmnet$glmnet.fit$beta, 2, function(x) sqrt(mean((x- beta)^2))/sqrt(mean(beta^2)))
+ymin = 0.95 * min(mse_glmnet)
+ymax = max(1, max(mse_glmnet))
+# par(mgp = c(3.5, 1, 0), mar = c(5, 4, 2.5, 0.5) + 1.4)
+plot(log(fit.glmnet$lambda), mse_glmnet, 
+     type = 'b', col = "red", cex.lab = 2, cex=2, cex.axis = 2,
+     ylim = c(ymin, ymax),
+     ylab = "Relative MSE w.r.t. the true coefficients", xlab = expression(paste("log(",lambda,")")))
+
+# plotting log of lambdas selected by CV
+abline(v = log(c(fit.glmnet$lambda.min, fit.glmnet$lambda.1se)), lty = "dashed",col = c(rgb(0,1,0), rgb(0,0.75,0)), lwd = 3)
+
+# plotting log of lambdas selected by autotune
+abline(v = log(lambda.autotune), col = "blue", lty = "dashed", lwd = 3)
+legend(
+  "topleft", inset = 0.05,                  
+  legend = c("Autotune LASSO",
+             "CV_LASSO(min)",
+             "CV_LASSO(1se)"),
+  col = c("blue", rgb(0,1,0), rgb(0,0.75,0)),
+  lty = "dashed", lwd = 2, cex = 1.5)
+```
+
+
+Across the lambda grid, we plot RMSE of solution path taken by different tuners.
+
+```{r}
+temp <- fit.autotune$CD.path.details$lambda0
+seq.lambdas.autotune <- temp * c(var(y), sigma.seq.autotune/2)
+
+final.rmse.autotune <- sqrt(mean(b.autotune - beta)^2)/sqrt(mean(beta)^2)
+intermediate.rmse.autotune <- approx(x = fit.glmnet$lambda, y = mse_glmnet, xout = seq.lambdas.autotune)
+
+rmse.path.autotune <- c(intermediate.rmse.autotune$y, final.rmse.autotune)
+
+plot(log(fit.glmnet$lambda), mse_glmnet, 
+     type = 'b', col = "red", cex.lab = 2, cex=2, cex.axis = 2,
+     ylim = c(min(ymin, 0.95 * final.rmse.autotune), ymax),
+     ylab = "Relative MSE w.r.t. the true coefficients", xlab = expression(paste("log(",lambda,")")))
+
+lines(c(log(seq.lambdas.autotune), log(fit.autotune$lambda)), 
+      rmse.path.autotune, 
+      col = "blue", 
+      lwd = 2)                  
+points(log(seq.lambdas.autotune), 
+       intermediate.rmse.autotune$y, 
+       col = "blue", 
+       pch = 1,               
+       lwd = 2,
+       cex = 2) 
+points(log(fit.autotune$lambda),
+      final.rmse.autotune,
+      col = "blue",
+      pch = 11,
+      lwd = 3,
+      cex = 3
+    )
+```
+
