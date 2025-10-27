@@ -131,6 +131,8 @@ seq.lambdas.autotune <- temp * c(var(y), sigma.seq.autotune/2)
 final.rmse.autotune <- sqrt(mean(b.autotune - beta)^2)/sqrt(mean(beta)^2)
 intermediate.rmse.autotune <- approx(x = fit.glmnet$lambda, y = mse_glmnet, xout = seq.lambdas.autotune)
 
+seq.lambdas.autotune[1] <- temp * var(y)/2
+
 rmse.path.autotune <- c(intermediate.rmse.autotune$y, final.rmse.autotune)
 
 plot(log(fit.glmnet$lambda), mse_glmnet, 
