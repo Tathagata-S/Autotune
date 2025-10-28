@@ -5,17 +5,16 @@ using namespace Rcpp;
 List autotune_lasso(SEXP xin,
                     SEXP yin,
                     float alpha = 0.01,
-                    Nullable<double> lambda0 = R_NilValue,
-                    double tolerance = 1e-4,
-                    double beta_tolerance = 1e-3,
-                    short int iter_max = 30,
-                    short int beta_iter_max = 40,
                     bool standardize = true,
                     bool standardize_response = true,
                     bool intercept = true,
                     bool active = false,
                     bool trace_it = false,
-                    bool l2_partial_residuals = false) {
+                    double tolerance = 1e-4,
+                    double beta_tolerance = 1e-3,
+                    short int iter_max = 30,
+                    short int beta_iter_max = 40,
+                    bool PR_norm_l2 = false) {
   
   NumericVector y;
   
@@ -86,16 +85,17 @@ List autotune_lasso(SEXP xin,
   short int s;
   bool null_support = FALSE;
   
-  if (lambda0.isNull()) {
-    NumericVector temp(p);
-    for (int j = 0; j < p; j++) {
-      temp[j] = sum(x(_, j) * y);
-    }
-    init_lambda = max(abs(temp)) / n;
-    lambda_value = init_lambda * (1.0 / (sigma2est));
-  } else {
-    lambda_value = as<double>(lambda0);
+  NumericVector temp(p);
+  for (int j = 0; j < p; j++) {
+    temp[j] = sum(x(_, j) * y);
   }
+  init_lambda = max(abs(temp)) / n;
+  lambda_value = init_lambda * (1.0 / (sigma2est));
+  
+  // if (lambda0.isNull()) {
+  // } else {
+  //   lambda_value = as<double>(lambda0);
+  // }
   
   int idx;
   int iteration = 1;
@@ -134,7 +134,7 @@ List autotune_lasso(SEXP xin,
       }
     }
     
-    if(!l2_partial_residuals) {
+    if(!PR_norm_l2) {
       for (int j = 0; j < p; j++) {
         partial_res_l1[j] = sum(abs(temp_stor(_, j)));
       }
@@ -354,11 +354,13 @@ List autotune_lasso(SEXP xin,
     intercept_estimate = y_mean - sum(beta * predmeans);
   }
   
+  double final_sigma = rev(sigma2_seq)[0];
   // int total_iter;
   // total_iter = iteration + beta_iteration;
   
   List cd_path_details = List::create(
     _["sorted_predictors"] = active_indices + 1,
+    _["sigma_sq_seq"] = sigma2_seq,
     _["no_of_iter_before_lambda_conv"] = iteration,
     _["no_of_iter_after_lambda_conv"] = beta_iteration,
     _["no_of_iterations"] = iteration + beta_iteration,
@@ -372,10 +374,10 @@ List autotune_lasso(SEXP xin,
   return List::create(
     // _["residual_matrix"] = resi_mat,
     // _["beta_matrix"] = beta_mat,
-    _["sigma2_seq"] = sigma2_seq,
     _["beta"] = beta,
     _["a0"] = intercept_estimate,
     _["lambda"] = lambda_effective,
+    _["sigma_sq"] = final_sigma,
     _["CD.path.details"] = cd_path_details
   );
 }

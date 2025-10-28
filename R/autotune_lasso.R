@@ -6,9 +6,12 @@
 #' @param yin Vector of responses.
 #' @param alpha Default 0.01, significance level of sequential F-tests 
 #' used for estimation of support set.
-#' @param lambda0 Numeric input, default (and recommended) value None.
-#' If user provides a \eqn{\lambda_0}, autotune lasso starts finding pathwise solutions
-#' from that \eqn{\lambda_0}, else sets the starting \eqn{\lambda_0 = \|x^T y\|_{\infty}/}(\code{nobs} \eqn{\times} \eqn{Var(y)})
+#' @param standardize Logical flag for standardization of all variables in x, prior to
+#' fitting the model sequence. The coefficients are always returned on the
+#' original scale.
+#' @param standardize_response Logical flag for demeaning the reponse variable y.
+#' @param intercept Should intercept(s) be fitted (default=TRUE) or set to zero
+#' (FALSE).
 #' @param tolerance Numeric input for an additional stopping criteria on the
 #' coordinate descent when sigma is updating. Stops that coordinate
 #' descent when the relative change between successive iterates of
@@ -21,35 +24,31 @@
 #' allowed when sigma is updating
 #' @param beta_iter_max Maximum number of iterations of coordinate 
 #' descent allowed when sigma is not updating
-#' @param standardize Logical flag for standardization of all variables in x, prior to
-#' fitting the model sequence. The coefficients are always returned on the
-#' original scale.
-#' @param standardize_response Logical flag for demeaning the reponse variable y.
-#' @param intercept Should intercept(s) be fitted (default=TRUE) or set to zero
-#' (FALSE).
 #' @param active Should active set selection be used (TRUE) or avoided
-#' (default = FALSE). Autotune fast convergence often alleviates the speed gains
-#' coming from active set selection. 
+#' (default = FALSE). It is under experimentation phase, use it 
+#' with care.
 #' @param trace_it Logical input, default \code{FALSE}; if \code{TRUE}
 #' prints out the iteration number while running, useful for big datasets that 
 #' take a long time to fit.
-#' @param l2_partial_residuals Logical flag to whether use the l2 norm of partial 
+#' @param PR_norm_l2 Logical flag to whether use the l2 norm of partial 
 #' residuals for ordering them instead of the default l1 norm. 
 #'
 #' 
 #' @return A list with various intermediate and final outputs produced by Autotune LASSO in its regularization path.
-#' \item{sigma2_seq}{ A \code{no_of_iter} length sequence of estimates
-#' noise variance \eqn{\sigma^2}. }
+#' 
 #' \item{beta}{ Final estimates of regression coefficients. }
 #' \item{a0}{ Intercept of the fit. }
 #' \item{lambda}{Final thresholding value \eqn{\lambda =
 #' \lambda_0\hat\sigma^2} used in the coordinate descent after noise
 #' variance estimate \eqn{\hat\sigma^2} has converged.}
+#' \item{sigma_sq}{Final estimate of noise variance \eqn{\sigma^2}}
 #' \item{CD.path.details}{ A list of additionals details about the coordinate descent path taken by
 #' Autotune lasso:}
 #' \itemize{
 #'    \item{\code{sorted_predictors:}}{       Decreasing ordering of predictors in terms of
 #' their contribution to predicting the response values.}
+#' \item{sigma_sq_seq:}{ A \code{no_of_iterations} length sequence of estimates
+#' noise variance \eqn{\sigma^2}. }
 #'     \item{\code{lambda0:}}{        Value of \eqn{\lambda_0} used in the Autotune LASSO.
 #' Refer to the original paper for details.} 
 #'    \item{\code{support_set:}}{       Final set of predictors included in the support set for

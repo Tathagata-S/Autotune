@@ -37,7 +37,7 @@
 #' err <- rnorm(n, sd = error.sd)
 #' y <- x %*% betatrue + err
 #' y <- y - mean(y)
-#' ans <- autotune_lasso(x, y, verbose = TRUE)
+#' ans <- autotune_lasso(x, y, trace_it = TRUE)
 #' b <- betatrue
 #' # The Predictors which are actually significant:
 #' which(b != 0)

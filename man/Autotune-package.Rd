@@ -8,7 +8,7 @@
 \description{
 This package fits lasso path for high-dimensional regression using
 coordinate descent while automatically tuning it's regularization parameter.
-Autotune Lasso is 15-125 times faster than the standard glmnet implementation of lasso,
+Autotune Lasso is 10-50 times than the standard glmnet implementation of lasso,
 and over 100 times faster than scaled lasso. Additionally, it gives reliable 
 noise level estimate for the regression problem.
 }
@@ -41,7 +41,7 @@ error.sd <- sqrt((betatrue \%*\% betatrue)/snr)
 err <- rnorm(n, sd = error.sd)
 y <- x \%*\% betatrue + err
 y <- y - mean(y)
-ans <- autotune_lasso(x, y, verbose = TRUE)
+ans <- autotune_lasso(x, y, trace_it = TRUE)
 b <- betatrue
 # The Predictors which are actually significant:
 which(b != 0)
