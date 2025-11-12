@@ -8,3 +8,7 @@ src/*.dll
 src/*.bak
 .Rproj
 inst/doc
+/doc/
+/Meta/
+experimentation.Rmd
+experimentation.html

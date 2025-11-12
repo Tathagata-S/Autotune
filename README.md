@@ -11,6 +11,8 @@ install.packages("devtools")
 # Ensure that you have the Rcpp package installed with version >=1.0.13
 devtools::install_github("Tathagata-S/Autotune")
 ```
+When installing from GitHub, in order to build the package from source, you need to have the appropriate R development tools installed ([Rtools](https://cran.r-project.org/bin/windows/Rtools/) on Windows, or [these tools](https://mac.r-project.org/tools/) on Mac).
+
 
 👉 **Usage**:
 ```md
@@ -42,11 +44,12 @@ which(b != 0)
 # The Predictors which had nonzero estimated coefficients:
 which(ans$beta != 0)
 # Top 10 predictors X_i's in the ranking of X_i's given by autotune:
-ans$sorted_predictors[1:10]
+ans$CD.path.details$sorted_predictors[1:10]
 # No of significant predictors in each CD iteration when sigma_hat is allowed to vary:
-ans$count_sig_beta
+ans$CD.path.details$count_sig_beta
 # Sigma estimates in each CD iteration:
-ans$sigma2_seq
+ans$CD.path.details$sigma_sq_seq
 # Empirical noise variance:
 var(err)
 ```
+

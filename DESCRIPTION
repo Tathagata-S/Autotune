@@ -14,5 +14,10 @@ RoxygenNote: 7.3.2
 Suggests: 
     knitr,
     rmarkdown,
-    glmnet
+    glmnet,
+    AUC,
+    ggplot2,
+    ggExtra,
+    dplyr,
+    tidyr
 VignetteBuilder: knitr
