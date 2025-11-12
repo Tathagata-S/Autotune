@@ -367,7 +367,7 @@ List autotune_lasso(SEXP xin,
     _["support_set"] = support_set + 1,
     _["active_set"] = active_set + 1,
     _["count_sig_beta"] = vec_sig_beta_count,
-    _["lambda0"] = lambda_value,
+    _["lambda0"] = lambda_value/2.0,
     _["null_support"] = null_support
   );
   
