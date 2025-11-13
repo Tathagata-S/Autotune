@@ -39,7 +39,7 @@ library(Autotune)
 ## High Dimensional Regression
 `Autotune` performs lasso via the `autotune_lasso()` function. 
 
-We illustrate autotune lasso on simulated data using a linear model with $s=5$, $n=250$, $p=500$. Reader can also specify different configurations of data generating process in the following code chunk.
+We illustrate autotune lasso on simulated data using a linear model with $s=10$, $n=300$, $p=500$. Reader can also specify different configurations of data generating process in the following code chunk.
 
 ```{r}
 set.seed(10)
@@ -78,12 +78,15 @@ sigma.estimate.autotune <- fit.autotune$sigma_sq
 ## Comparison with Lasso tuned via Cross Validation (CV Lasso)
 
 We contrast our solution with Cross-Validation-tuned Lasso using `cv.glmnet()` in the `glmnet` package.
+```{r}
+library(glmnet)
+```
 
 
 ### Runtime of CV Lasso
 ```{r}
 ptm2 <- proc.time()
-fit.glmnet <- glmnet::cv.glmnet(x, y)
+fit.glmnet <- cv.glmnet(x, y)
 proc.time()-ptm2
 ```
 So, Autotune Lasso shows faster runtimes as compared to CV Lasso.
@@ -92,8 +95,10 @@ So, Autotune Lasso shows faster runtimes as compared to CV Lasso.
 Now, we will visualize the quality of lambdas selected by autotune and CV with respect to the 10-fold CV MSE and true Relative MSE.
 ```{r, fig.width=7.5, fig.height=7.5}
 plot(fit.glmnet, cex.lab = 1.5)
+
 # plotting log of lambdas selected by CV
 abline(v = log(c(fit.glmnet$lambda.min, fit.glmnet$lambda.1se)), lty = "dashed",col = c(rgb(0,1,0), rgb(0,0.75,0)), lwd = 3)
+
 # plotting log of lambda selected by autotune
 abline(v = log(lambda.autotune), col = "blue", lty = "dashed", lwd = 3)
 legend("topleft", inset = 0.05,             legend = c("Autotune LASSO",
@@ -176,6 +181,198 @@ b.glmnet = coef(fit.glmnet, s = "lambda.min")[-1]
 ```{r}
 auc(roc(abs(b.autotune), as.factor(beta != 0)))
 auc(roc(abs(b.glmnet), as.factor(beta != 0)))
+```
+
+## Comparison on real data provided in Scaled Lasso's R package `scalreg`
+
+```{r}
+library(scalreg)
+```
+
+### Comparing prediction errors of autotune and benchmarks: CV and Scaled Lasso
+```{r}
+data("sp500")
+attach(sp500)
+
+n <- 190
+rang <- 252 - n
+
+X_train = sp500.percent[1:n, 3: (dim(sp500.percent)[2])]
+Y_train = sp500.percent[1:n, 1]
+
+x_train = scale(X_train)
+y_train = Y_train - mean(Y_train)
+
+X_test = sp500.percent[(1:rang) + n, 3: (dim(sp500.percent)[2])]
+Y_test = sp500.percent[(1:rang) + n, 1]
+x_test <- scale(X_test)
+y_test <- Y_test - mean(Y_test)
+
+# Default value of beta_iter_max is 40
+ans_autotune <- autotune_lasso(x_train, y_train, beta_iter_max = 40)
+pred_err_autotune <- mean( (y_test - x_test %*% ans_autotune$beta)^2 )
+
+object = scalreg(x_train, y_train)
+pred_err_scallas <- mean( (y_test - x_test %*% object$coefficients)^2 )
+
+cv_fit <- cv.glmnet(x_train, y_train, alpha = 1, intercept = F)
+pred_err_cv_min <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.min"))^2 )
+pred_err_cv_1se <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.1se"))^2 )
+
+
+pred_err_autotune
+pred_err_scallas
+pred_err_cv_min
+pred_err_cv_1se
+
+sum(object$coefficients != 0)
+sum(ans_autotune$beta != 0)
+sum(coef(cv_fit, s = "lambda.min") != 0)
+sum(coef(cv_fit, s = "lambda.1se") != 0)
+detach(sp500)
+```
+
+
+### Comparing via bootstrap
+```{r}
+real_life_prediction_comparison <- function(x, y, x_test, y_test, alpha = 0.01, beta_iter_max = 40){
+
+ans_autotune <- autotune_lasso(x, y, alpha = alpha, beta_iter_max = beta_iter_max, trace_it = TRUE)
+# ans_glmnet <- glmnet(x, y, alpha = 1, intercept = FALSE)
+cv_fit <- cv.glmnet(x, y, alpha = 1, intercept = F)
+vary <- var(y_test)
+mse_glmnet <- apply(cv_fit$glmnet.fit$beta, 2, function(b) mean((y_test - x_test%*%b)^2)/vary)
+
+intermediate_lambdas_used <- c( c(var(y)/2, ans_autotune$CD.path.details$sigma_sq_seq) * ans_autotune$CD.path.details$lambda0)
+
+autotune_lambdas <- c(intermediate_lambdas_used, ans_autotune$lambda)
+
+final.rmse.autotune <- mean((y_test - x_test%*%ans_autotune$beta)^2) / vary
+
+# log_glmnet_lambdas <- log(fit.glmnet$lambda)
+# log_autotune_lambdas <- log(intermediate_lambdas_used)
+
+intermediate.rmse.autotune <- approx(x = log(cv_fit$lambda), y = mse_glmnet, xout = log(intermediate_lambdas_used))
+intermediate.rmse.autotune$y[1] <- 1
+rmse.path.autotune <- c(intermediate.rmse.autotune$y, final.rmse.autotune)
+
+
+ysquaredmean <- mean(y^2)
+cv_fit$cvm <- cv_fit$cvm/ysquaredmean
+cv_fit$cvsd <- cv_fit$cvsd/ysquaredmean
+cv_fit$cvup <- cv_fit$cvm + cv_fit$cvsd
+cv_fit$cvlo <- cv_fit$cvm - cv_fit$cvsd
+
+cv_fit_lowerlim <- min(cv_fit$cvm - cv_fit$cvsd, mse_glmnet)
+cv_fit_upperlim <- max(cv_fit$cvm + cv_fit$cvsd, mse_glmnet)
+
+ymin = 0.95 * min(cv_fit_lowerlim , min(rmse.path.autotune))
+ymax = max(cv_fit_upperlim, rmse.path.autotune)
+ymax_trunc = ymin + 0.8 * (ymax - ymin)  # Truncate vertical lines here
+
+ydiff = ymax - ymin
+
+
+par(mgp = c(3.5, 1, 0), mar = c(6, 5, 4, 2) + 0.1)
+# Plot training error from cross-validation (cv_fit)
+plot(cv_fit,
+     ylim = c(ymin, max(cv_fit_upperlim, rmse.path.autotune)),
+     cex.lab = 2,
+     cex.axis = 2,
+     ylab = "Standardized MSE")
+
+# Overlay test error from glmnet
+points(log(cv_fit$lambda), mse_glmnet,
+       type = 'b', col = "orange", lwd = 3)
+
+# Overlay autotune path
+lines(rep(log(ans_autotune$lambda), 2),
+      c(ymin, ymin + 0.92 * ydiff), col = "blue", lwd = 0.5, lty = "dashed")
+
+lines(log(autotune_lambdas), rmse.path.autotune,
+      col = "blue", lwd = 1.5)
+
+points(log(autotune_lambdas), rmse.path.autotune,
+       col = "blue", pch = 1, lwd = 1.5, cex = 1)
+
+points(log(ans_autotune$lambda), final.rmse.autotune,
+       col = "blue", pch = 11, lwd = 2, cex = 2)
+
+# Add vertical guideline bars and labels
+
+vlines <- c(
+  log(cv_fit$lambda.min),
+  log(cv_fit$lambda.1se)
+)
+vline_labels <- c("CV(min)", "CV(1se)")
+vline_colors <- c(rgb(0,1,0), rgb(0,0.75,0))
+vline_ltys <- c("dashed", "dashed")
+vline_lwds <- c(3, 3)
+
+for (i in seq_along(vlines)) {
+  lines(rep(vlines[i], 2),
+        c(ymin, ymin + (0.55 + i * 0.1) * ydiff),
+        col = vline_colors[i], lty = vline_ltys[i],
+        lwd = vline_lwds[i])
+
+  text(x = vlines[i], y = ymin + (0.57 + i * 0.1) * ydiff,
+       labels = vline_labels[i], srt = -30, adj = 0,
+       xpd = TRUE, cex = 1.4, col = vline_colors[i])
+}
+
+# Autotune label
+text(x = log(ans_autotune$lambda),
+     y =  ymin + 0.95 * ydiff,
+     labels = "Autotune", srt = -30, adj = 0,
+     xpd = TRUE, cex = 1.4, col = "blue")
+
+# === Add error bars for training errors ===
+if (!is.null(cv_fit$cvsd)) {
+  arrows(x0 = log(cv_fit$lambda), 
+         y0 = cv_fit$cvm - cv_fit$cvsd,
+         x1 = log(cv_fit$lambda),
+         y1 = cv_fit$cvm + cv_fit$cvsd,
+         angle = 90, code = 3, length = 0.05, col = "red", lwd = 1.5)
+}
+
+# === Custom Legend Below Plot ===
+legend("topright",
+       inset = c(0.05, 0.02),
+       legend = c("CV Error", "Test Error"),
+       col = c("red", "orange"),
+       pt.cex = c(1.5, 2), pch = c(19, 19),
+       lwd = c(1, 3),
+       text.col = c("red", "orange"),
+       horiz = FALSE,
+       bty = "n")
+
+object = scalreg(x, y)
+mse_scallas <- mean( (y_test - x_test %*% object$coefficients)^2 )
+mse_autotune <- mean( (y_test - x_test %*% ans_autotune$beta)^2 )
+mse_cv_min <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.min"))^2 )
+mse_cv_1se <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.1se"))^2 )
+
+
+oos_scallas <- 1 - mean( (y_test - x_test %*% object$coefficients)^2 ) / vary
+oos_autotune <- 1 -  mean( (y_test - x_test %*% ans_autotune$beta)^2 ) / vary
+oos_cv_min <- 1 - mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.min"))^2 ) / vary
+oos_cv_1se <- 1 - mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.1se"))^2 ) / vary
+
+return(c(oos_autotune,
+oos_scallas,
+oos_cv_min,
+oos_cv_1se,
+sum(ans_autotune$beta != 0),
+sum(object$coefficients != 0),
+sum(coef(cv_fit, s = "lambda.min") != 0),
+sum(coef(cv_fit, s = "lambda.1se") != 0)))
+
+}
+```
+
+
+```{r, fig.width=7.5, fig.height=7.5}
+ans <- real_life_prediction_comparison(x_train, y_train, x_test, y_test)
 ```
 
 

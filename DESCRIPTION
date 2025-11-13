@@ -19,5 +19,6 @@ Suggests:
     ggplot2,
     ggExtra,
     dplyr,
-    tidyr
+    tidyr,
+    scalreg
 VignetteBuilder: knitr
