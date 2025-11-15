@@ -243,36 +243,38 @@ cv_fit <- cv.glmnet(x, y, alpha = 1, intercept = F)
 vary <- var(y_test)
 mse_glmnet <- apply(cv_fit$glmnet.fit$beta, 2, function(b) mean((y_test - x_test%*%b)^2)/vary)
 
-intermediate_lambdas_used <- c( c(var(y)/2, ans_autotune$CD.path.details$sigma_sq_seq) * ans_autotune$CD.path.details$lambda0)
 
-autotune_lambdas <- c(intermediate_lambdas_used, ans_autotune$lambda)
-
-final.rmse.autotune <- mean((y_test - x_test%*%ans_autotune$beta)^2) / vary
 
 # log_glmnet_lambdas <- log(fit.glmnet$lambda)
 # log_autotune_lambdas <- log(intermediate_lambdas_used)
 
-intermediate.rmse.autotune <- approx(x = log(cv_fit$lambda), y = mse_glmnet, xout = log(intermediate_lambdas_used))
-intermediate.rmse.autotune$y[1] <- 1
-rmse.path.autotune <- c(intermediate.rmse.autotune$y, final.rmse.autotune)
 
-
-ysquaredmean <- mean(y^2)
-cv_fit$cvm <- cv_fit$cvm/ysquaredmean
-cv_fit$cvsd <- cv_fit$cvsd/ysquaredmean
-cv_fit$cvup <- cv_fit$cvm + cv_fit$cvsd
-cv_fit$cvlo <- cv_fit$cvm - cv_fit$cvsd
-
-cv_fit_lowerlim <- min(cv_fit$cvm - cv_fit$cvsd, mse_glmnet)
-cv_fit_upperlim <- max(cv_fit$cvm + cv_fit$cvsd, mse_glmnet)
-
-ymin = 0.95 * min(cv_fit_lowerlim , min(rmse.path.autotune))
-ymax = max(cv_fit_upperlim, rmse.path.autotune)
-ymax_trunc = ymin + 0.8 * (ymax - ymin)  # Truncate vertical lines here
-
-ydiff = ymax - ymin
 
 if(plot_regu) {
+  intermediate_lambdas_used <- c( c(var(y)/2, ans_autotune$CD.path.details$sigma_sq_seq) * ans_autotune$CD.path.details$lambda0)
+  
+  autotune_lambdas <- c(intermediate_lambdas_used, ans_autotune$lambda)
+  
+  final.rmse.autotune <- mean((y_test - x_test%*%ans_autotune$beta)^2) / vary
+  intermediate.rmse.autotune <- approx(x = log(cv_fit$lambda), y = mse_glmnet, xout = log(intermediate_lambdas_used))
+  intermediate.rmse.autotune$y[1] <- 1
+  rmse.path.autotune <- c(intermediate.rmse.autotune$y, final.rmse.autotune)
+  
+  
+  ysquaredmean <- mean(y^2)
+  cv_fit$cvm <- cv_fit$cvm/ysquaredmean
+  cv_fit$cvsd <- cv_fit$cvsd/ysquaredmean
+  cv_fit$cvup <- cv_fit$cvm + cv_fit$cvsd
+  cv_fit$cvlo <- cv_fit$cvm - cv_fit$cvsd
+  
+  cv_fit_lowerlim <- min(cv_fit$cvm - cv_fit$cvsd, mse_glmnet)
+  cv_fit_upperlim <- max(cv_fit$cvm + cv_fit$cvsd, mse_glmnet)
+  
+  ymin = 0.95 * min(cv_fit_lowerlim , min(rmse.path.autotune))
+  ymax = max(cv_fit_upperlim, rmse.path.autotune)
+  ymax_trunc = ymin + 0.8 * (ymax - ymin)  # Truncate vertical lines here
+  
+  ydiff = ymax - ymin
   par(mgp = c(3.5, 1, 0), mar = c(6, 5, 4, 2) + 0.1)
 
   plot(cv_fit,
@@ -347,10 +349,10 @@ if(plot_regu) {
 }
 
 object = scalreg(x, y)
-mse_scallas <- mean( (y_test - x_test %*% object$coefficients)^2 )
-mse_autotune <- mean( (y_test - x_test %*% ans_autotune$beta)^2 )
-mse_cv_min <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.min"))^2 )
-mse_cv_1se <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.1se"))^2 )
+# mse_scallas <- mean( (y_test - x_test %*% object$coefficients)^2 )
+# mse_autotune <- mean( (y_test - x_test %*% ans_autotune$beta)^2 )
+# mse_cv_min <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.min"))^2 )
+# mse_cv_1se <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.1se"))^2 )
 
 
 oos_scallas <- 1 - mean( (y_test - x_test %*% object$coefficients)^2 ) / vary
@@ -382,7 +384,7 @@ library(dplyr)
 
 
 ```{r, fig.width=7.5, fig.height=7.5}
-B <- 20
+B <- 50
 result_list <- list()
 
 result_list[[1]] <- data.frame(n = n, bootstrap = FALSE, real_life_prediction_comparison(x_train, y_train, x_test, y_test, plot_regu = FALSE, trace_it = FALSE)[1:4])
@@ -423,6 +425,5 @@ if(nrow(nonboot) > 0){
   points(1:4, as.numeric(nonboot[1, alg_cols]), pch = 18, col = "red", cex = 1.5)
 }
 ```
-
 
 

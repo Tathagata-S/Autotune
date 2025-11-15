@@ -325,12 +325,9 @@ List autotune_lasso(SEXP xin,
   // beta_mat(iteration, _) = beta;
   
   if(standardize) {
-    for(int i = 0; i <= iteration; i++) {
-      // NumericVector col = beta_mat(i, _);
-      for(int j = 0; j < p; j++) {
-        if(predsds[j] > 0) {
-          beta[j] = beta[j]/predsds[j];
-        }
+    for(int j = 0; j < p; j++) {
+      if(predsds[j] > 0) {
+        beta[j] = beta[j]/predsds[j];
       }
     }
     // beta = beta_mat(iteration, _);
