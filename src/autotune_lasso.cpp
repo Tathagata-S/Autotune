@@ -44,6 +44,10 @@ List autotune_lasso(SEXP xin,
     stop("Length of y doesn't match with the no of observations in x matrix.");
   }
   
+  if( alpha <= 0.0 || alpha >= 1.0) {
+    stop("Alpha must be strictly between 0 and 1.");
+  }
+  
   NumericVector beta(p, 0.0);
   NumericVector predmeans(p, 0.0);
   NumericVector predsds(p, 0.0);
@@ -53,13 +57,14 @@ List autotune_lasso(SEXP xin,
     for (int j = 0; j < p; j++) {
       mu_j = mean(x(_, j));
       predmeans[j] = mu_j;
-      sd_j = sd(x(_, j));
+      sd_j = sqrt(mean(pow(x(_, j) - mu_j, 2)));
+      // sd_j = sd(x(_, j));
       predsds[j] = sd_j;
       if(sd_j > 0.0) {
         x(_,j) = (x(_,j) - mu_j) / sd_j;
       } else {
         NumericVector zeroVector(n, 0.0);
-        x(_, j) = zeroVector;
+        x(_, j) = clone(zeroVector);
       }
     }
   }
@@ -78,7 +83,7 @@ List autotune_lasso(SEXP xin,
   NumericVector vec_sig_beta_count(iter_max);
   NumericVector sigma2_seq(iter_max);
   IntegerVector support_set, old_support_set;
-  int max_no_of_preds = std::min(p / 2, n / 2);
+  int max_no_of_preds = std::min((4*p) / 5, (4*n) / 5);
   NumericMatrix u(n, max_no_of_preds);
   double init_lambda, lambda_value;
   short int flag = 1;
@@ -92,18 +97,13 @@ List autotune_lasso(SEXP xin,
   init_lambda = max(abs(temp)) / n;
   lambda_value = init_lambda * (1.0 / (sigma2est));
   
-  // if (lambda0.isNull()) {
-  // } else {
-  //   lambda_value = as<double>(lambda0);
-  // }
-  
   int idx;
   int iteration = 1;
   double error = R_PosInf;
   NumericMatrix temp_stor(n, p);
   double lambda_effective, beta_temp;
-  NumericVector old_beta(p), partial_res_l1(p), change_in_xbeta;
   double mean_abs_old_beta, mean_abs_diff;
+  NumericVector old_beta(p), partial_res_l1(p), change_in_xbeta;
   
   while (error > tolerance && iteration <= iter_max) {
     old_beta = clone(beta);
@@ -117,13 +117,11 @@ List autotune_lasso(SEXP xin,
     for (int j = 0; j < p; j++) {
       idx = active_indices[j];
       beta_temp = (sum(x(_, idx) * r) / n) + beta[idx];
-      
       if (std::abs(beta_temp) > lambda_effective) {
         beta[idx] = beta_temp - (beta_temp > 0 ? 1 : -1) * lambda_effective;
       } else {
         beta[idx] = 0.0;
       }
-      
       change_in_xbeta = x(_, idx) * (beta[idx] - old_beta[idx]);
       r = r - change_in_xbeta;
     }
@@ -152,10 +150,9 @@ List autotune_lasso(SEXP xin,
     
     NumericVector ytemp = clone(y);
     int iter = 0;
-    NumericVector xk(n);
-    NumericVector uk(n);
+    NumericVector uk(n), xk(n);
     NumericVector proj_coeffs(max_no_of_preds - 1);
-    
+    double mean_uk;
     int idx;
     for (int k = 0; k < max_no_of_preds; k++) {
       idx = active_indices[k];
@@ -171,12 +168,13 @@ List autotune_lasso(SEXP xin,
       }
       
       uk = u(_, k);
-      NumericVector yhat = uk * (sum(uk * ytemp)) / (sum(uk * uk));
+      mean_uk = mean(uk);
+      NumericVector yhat = uk * (sum((uk - rep(mean_uk, uk.size())) * ytemp)) / (sum((uk - rep(mean_uk, uk.size())) * (uk - rep(mean_uk, uk.size()))));
       double rss = sum(pow(ytemp - yhat, 2));
-      double sst = sum(pow(ytemp - mean(ytemp), 2));
+      double sst = sum(pow(ytemp, 2));
       double ss_reg = sst - rss;
-      double f_stat = ((n - k - 1) * ss_reg)/rss;
-      double cutoff = R::qf(1 - alpha, 1, n - k - 1, true, false);
+      double f_stat = ((n - k) * ss_reg)/rss;
+      double cutoff = R::qf(1 - alpha, 1, n - k, true, false);
       
       if (f_stat < cutoff) {
         break;
@@ -218,9 +216,13 @@ List autotune_lasso(SEXP xin,
   
   if(support_set.size() == 0) {
     null_support = TRUE;
-    sigma2est = sigma2_seq[iteration - 2];
-    active_indices = active_indices[beta[active_indices] != 0];
-    p = active_indices.size();
+    if(iteration >= 2) {
+      sigma2est = sigma2_seq[iteration - 2];
+    } else {
+      sigma2est = var(y) / 10;
+    }
+    // active_indices = active_indices[beta[active_indices] != 0];
+    // p = active_indices.size();
   }
   
   if (iteration < iter_max) {
@@ -328,6 +330,8 @@ List autotune_lasso(SEXP xin,
     for(int j = 0; j < p; j++) {
       if(predsds[j] > 0) {
         beta[j] = beta[j]/predsds[j];
+      } else {
+        beta[j] = 0;
       }
     }
     // beta = beta_mat(iteration, _);
