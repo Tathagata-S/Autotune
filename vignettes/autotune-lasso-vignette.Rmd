@@ -33,7 +33,7 @@ When installing from GitHub, in order to build the package from source, you need
 ### Load Package
 After installation, the package can be loaded in the standard way:
 ```{r setup}
-library(Autotune)
+# library(Autotune)
 ```
 
 ## High Dimensional Regression
@@ -209,7 +209,7 @@ x_test <- scale(X_test)
 y_test <- Y_test - mean(Y_test)
 
 # Default value of beta_iter_max is 40
-ans_autotune <- autotune_lasso(x_train, y_train, beta_iter_max = 40)
+ans_autotune <- autotune_lasso(x_train, y_train, beta_iter_max = 40, trace_it = TRUE)
 pred_err_autotune <- mean( (y_test - x_test %*% ans_autotune$beta)^2 )
 
 object = scalreg(x_train, y_train)
@@ -243,6 +243,7 @@ cv_fit <- cv.glmnet(x, y, alpha = 1, intercept = F)
 vary <- var(y_test)
 mse_glmnet <- apply(cv_fit$glmnet.fit$beta, 2, function(b) mean((y_test - x_test%*%b)^2)/vary)
 
+object = scalreg(x, y)
 
 
 # log_glmnet_lambdas <- log(fit.glmnet$lambda)
@@ -256,7 +257,7 @@ if(plot_regu) {
   autotune_lambdas <- c(intermediate_lambdas_used, ans_autotune$lambda)
   
   final.rmse.autotune <- mean((y_test - x_test%*%ans_autotune$beta)^2) / vary
-  intermediate.rmse.autotune <- approx(x = log(cv_fit$lambda), y = mse_glmnet, xout = log(intermediate_lambdas_used))
+  intermediate.rmse.autotune <- approx(x = log(cv_fit$lambda), y = mse_glmnet, xout = log(intermediate_lambdas_used), rule = 2)
   intermediate.rmse.autotune$y[1] <- 1
   rmse.path.autotune <- c(intermediate.rmse.autotune$y, final.rmse.autotune)
   
@@ -276,13 +277,15 @@ if(plot_regu) {
   
   ydiff = ymax - ymin
   par(mgp = c(3.5, 1, 0), mar = c(6, 5, 4, 2) + 0.1)
-
+  
+  par(mar = c(5, 7, 4, 2))
   plot(cv_fit,
        ylim = c(ymin, max(cv_fit_upperlim, rmse.path.autotune)),
        cex.lab = 2,
        cex.axis = 2,
-       ylab = "Standardized MSE")
-  
+       ylab = expression( sqrt( sum( (hat(beta)[i] - beta[i])^2 ) ) /
+                   sqrt( sum( beta[i]^2 ) ) ))
+  # expression(paste(sqrt("RMSE")))
   
   points(log(cv_fit$lambda), mse_glmnet,
          type = 'b', col = "orange", lwd = 3)
@@ -348,7 +351,6 @@ if(plot_regu) {
 
 }
 
-object = scalreg(x, y)
 # mse_scallas <- mean( (y_test - x_test %*% object$coefficients)^2 )
 # mse_autotune <- mean( (y_test - x_test %*% ans_autotune$beta)^2 )
 # mse_cv_min <- mean( (y_test - predict(cv_fit, newx = x_test, s = "lambda.min"))^2 )
@@ -373,7 +375,7 @@ nonzero_coefs_cv1se = sum(coef(cv_fit, s = "lambda.1se") != 0)))
 
 
 ```{r, fig.width=7.5, fig.height=7.5}
-ans <- real_life_prediction_comparison(x_train, y_train, x_test, y_test)
+ans <- real_life_prediction_comparison(x_train, y_train, x_test, y_test, plot_regu = TRUE)
 names(ans)
 ```
 
@@ -384,7 +386,7 @@ library(dplyr)
 
 
 ```{r, fig.width=7.5, fig.height=7.5}
-B <- 50
+B <- 100
 result_list <- list()
 
 result_list[[1]] <- data.frame(n = n, bootstrap = FALSE, real_life_prediction_comparison(x_train, y_train, x_test, y_test, plot_regu = FALSE, trace_it = FALSE)[1:4])
@@ -418,12 +420,31 @@ boot_only <- df %>% filter(bootstrap == TRUE)
 boxlist <- lapply(alg_cols, function(cn) boot_only[[cn]])
 names(boxlist) <- alg_cols
 
-boxplot(boxlist, main = paste0("Bootstrapped Out-of-Sample R^2 for n = ", df[1,1]), ylab = "Out-of-Sample R^2", ylim = c(max(0.98 * min(df[alg_cols]), 0), 1))
+pdf(file.path(paste0("OOS_boxplot_for_n=",df[1,1],"_B=", B,".pdf")), width = 8, height = 9)
+
+par(mar = c(4, 6, 4, 2))
+boxplot(boxlist, main = paste0("Bootstrapped Out-of-Sample R^2 for n = ", df[1,1]), ylab = expression(paste("Out-of-Sample ",R^2)), ylim = c(max(0.98 * min(df[alg_cols]), 0), 1),
+        cex.lab = 2,     
+  cex.axis = 2,    
+  cex.main = 2)
 
 nonboot <- df %>% filter(bootstrap == FALSE)
 if(nrow(nonboot) > 0){
-  points(1:4, as.numeric(nonboot[1, alg_cols]), pch = 18, col = "red", cex = 1.5)
+  points(1:4, as.numeric(nonboot[1, alg_cols]), pch = 18, col = "red", cex = 2)
 }
+
+legend(
+  "topright",
+  legend = expression(paste("Observed O.O.S. ",R^2)),
+  col = "red",
+  pch = 18,
+  pt.cex = 2,
+  cex = 2,          
+  bty = "n"           
+)
+
+dev.off()
 ```
+
 
 
