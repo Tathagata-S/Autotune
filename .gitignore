@@ -13,3 +13,4 @@ inst/doc
 experimentation.Rmd
 experimentation.html
 *.pdf
+trial_autotune.cpp

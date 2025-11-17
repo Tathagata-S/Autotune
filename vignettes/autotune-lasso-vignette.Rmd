@@ -33,7 +33,7 @@ When installing from GitHub, in order to build the package from source, you need
 ### Load Package
 After installation, the package can be loaded in the standard way:
 ```{r setup}
-# library(Autotune)
+library(Autotune)
 ```
 
 ## High Dimensional Regression
@@ -194,7 +194,7 @@ library(scalreg)
 data("sp500")
 attach(sp500)
 
-n <- 190
+n <- 200
 rang <- 252 - n
 
 X_train = sp500.percent[1:n, 3: (dim(sp500.percent)[2])]
@@ -386,7 +386,7 @@ library(dplyr)
 
 
 ```{r, fig.width=7.5, fig.height=7.5}
-B <- 100
+B <- 20
 result_list <- list()
 
 result_list[[1]] <- data.frame(n = n, bootstrap = FALSE, real_life_prediction_comparison(x_train, y_train, x_test, y_test, plot_regu = FALSE, trace_it = FALSE)[1:4])
@@ -420,13 +420,15 @@ boot_only <- df %>% filter(bootstrap == TRUE)
 boxlist <- lapply(alg_cols, function(cn) boot_only[[cn]])
 names(boxlist) <- alg_cols
 
-pdf(file.path(paste0("OOS_boxplot_for_n=",df[1,1],"_B=", B,".pdf")), width = 8, height = 9)
+# Uncomment the following line and line 448 for saving the boxplot in your working directory
+
+# pdf(file.path(paste0("OOS_boxplot_for_n=",df[1,1],"_B=", B,".pdf")), width = 8, height = 9)
 
 par(mar = c(4, 6, 4, 2))
 boxplot(boxlist, main = paste0("Bootstrapped Out-of-Sample R^2 for n = ", df[1,1]), ylab = expression(paste("Out-of-Sample ",R^2)), ylim = c(max(0.98 * min(df[alg_cols]), 0), 1),
-        cex.lab = 2,     
+        cex.lab = 1.8,     
   cex.axis = 2,    
-  cex.main = 2)
+  cex.main = 1.5)
 
 nonboot <- df %>% filter(bootstrap == FALSE)
 if(nrow(nonboot) > 0){
@@ -443,7 +445,7 @@ legend(
   bty = "n"           
 )
 
-dev.off()
+# dev.off()
 ```
 
 
