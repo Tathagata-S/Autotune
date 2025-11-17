@@ -6,13 +6,24 @@ You can install the development version from GitHub:
 
 ```r
 # Install the devtools or remotes package if you don't have it
-install.packages("devtools")
+# install.packages("devtools")
 
 # Ensure that you have the Rcpp package installed with version >=1.0.13
 devtools::install_github("Tathagata-S/Autotune")
 ```
 When installing from GitHub, in order to build the package from source, you need to have the appropriate R development tools installed ([Rtools](https://cran.r-project.org/bin/windows/Rtools/) on Windows, or [these tools](https://mac.r-project.org/tools/) on Mac).
 
+
+## Installation with vignette
+You can also the build the vignette while installing the development version from GitHub:
+
+```r
+# install.packages("devtools")
+
+devtools::install_github("Tathagata-S/Autotune", build_vignettes = TRUE, dependencies = TRUE)
+
+vignette("autotune-lasso-vignette")
+```
 
 👉 **Usage**:
 ```md
