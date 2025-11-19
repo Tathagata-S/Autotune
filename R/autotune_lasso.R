@@ -35,7 +35,19 @@
 #' descent allowed when sigma is not updating. Default value is 40.
 #' @param PR_norm_l2 Logical flag to whether use the l2 norm of partial 
 #' residuals for ordering them instead of the default l1 norm. 
-#'
+#' 
+#' @usage autotune_lasso(xin,
+#' yin, 
+#' alpha = 0.01, 
+#' standardize = true, 
+#' standardize_response = true, 
+#' intercept = true, 
+#' trace_it = false, 
+#' tolerance = 1e-4, 
+#' beta_tolerance = 1e-3, 
+#' iter_max = 30,
+#' beta_iter_max = 40, ...)
+#' 
 #' 
 #' @return A list with various intermediate and final outputs produced by Autotune LASSO in its regularization path.
 #' 

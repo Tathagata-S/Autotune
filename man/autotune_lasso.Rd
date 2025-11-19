@@ -3,6 +3,19 @@
 \name{autotune_lasso}
 \alias{autotune_lasso}
 \title{Autotune LASSO: Fitting a linear model with fast and automatic lasso regularization}
+\usage{
+autotune_lasso(xin,
+yin, 
+alpha = 0.01, 
+standardize = true, 
+standardize_response = true, 
+intercept = true, 
+trace_it = false, 
+tolerance = 1e-4, 
+beta_tolerance = 1e-3, 
+iter_max = 30,
+beta_iter_max = 40, ...)
+}
 \arguments{
 \item{xin}{Matrix of predictors, with one column for each predictor.
 Dimension will be \code{nobs} \eqn{\times} \code{nvars}; so each row is a new observation
