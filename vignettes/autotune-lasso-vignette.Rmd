@@ -194,10 +194,10 @@ library(scalreg)
 data("sp500")
 attach(sp500)
 
-n <- 200
+n <- 190
 rang <- 252 - n
 
-X_train = sp500.percent[1:n, 3: (dim(sp500.percent)[2])]
+X_train = sp500.percent[1:n, 3:(dim(sp500.percent)[2])]
 Y_train = sp500.percent[1:n, 1]
 
 x_train = scale(X_train)
@@ -207,7 +207,7 @@ X_test = sp500.percent[(1:rang) + n, 3: (dim(sp500.percent)[2])]
 Y_test = sp500.percent[(1:rang) + n, 1]
 x_test <- scale(X_test)
 y_test <- Y_test - mean(Y_test)
-
+row_sd[7] <- mean((y_test)^2)
 # Default value of beta_iter_max is 40
 ans_autotune <- autotune_lasso(x_train, y_train, beta_iter_max = 40, trace_it = TRUE)
 pred_err_autotune <- mean( (y_test - x_test %*% ans_autotune$beta)^2 )
@@ -283,8 +283,11 @@ if(plot_regu) {
        ylim = c(ymin, max(cv_fit_upperlim, rmse.path.autotune)),
        cex.lab = 2,
        cex.axis = 2,
-       ylab = expression( sqrt( sum( (hat(beta)[i] - beta[i])^2 ) ) /
-                   sqrt( sum( beta[i]^2 ) ) ))
+       ylab = expression(
+    "||" * (Y[test] - X[test] * hat(beta)) * "||"[2]^2
+    ~ "/" ~
+    "||" * Y[test]  * "||"[2]^2
+  ))
   # expression(paste(sqrt("RMSE")))
   
   points(log(cv_fit$lambda), mse_glmnet,
@@ -386,7 +389,10 @@ library(dplyr)
 
 
 ```{r, fig.width=7.5, fig.height=7.5}
+#Number of bootstraps
 B <- 20
+
+
 result_list <- list()
 
 result_list[[1]] <- data.frame(n = n, bootstrap = FALSE, real_life_prediction_comparison(x_train, y_train, x_test, y_test, plot_regu = FALSE, trace_it = FALSE)[1:4])
